@@ -69,9 +69,22 @@ def handle_new(s: socket, inputs: list[socket]):
 
 def handle_msg(s: socket, inputs: list[socket], server: socket):
     """
-    Handles a message and re transmits it
+    Handles a msg from an incomming connection, parses the request into a class
+    and then forwards the request into the corresponding handler
     """
-    data = s.recv(1024)
+    buff = ""
+
+    while True:
+        data = s.recv(1024)
+
+        if len(data) == 0:
+            return
+
+        buff += data
+        slice_obj = slice(-1, -5, -1)
+
+        if buff[slice_obj] == "\n\r\n\r"
+            break
 
     petition = Petition(data)
 
