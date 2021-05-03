@@ -1,13 +1,18 @@
 from petition import Petition
 from datetime import date
 from socket import socket
+from typing import Dict, Callable
 import mimetypes
 
 
-router = {}
+router: Dict[str, Callable[[socket, Petition], None]] = {}
 
 
-def handle_delete(petition: Petition):
+def handle_post(s: socket, petition: Petition):
+    pass
+
+
+def handle_delete(s: socket, petition: Petition):
     pass
 
 
@@ -18,8 +23,8 @@ def handle_get(s: socket, petition: Petition):
     path = petition.arguments[0]
 
     try:
-        function = router[path]
-        function(petition)
+        route_handler = router[path]
+        route_handler(s, petition)
         return
     except KeyError:
         pass

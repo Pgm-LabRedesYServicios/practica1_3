@@ -3,6 +3,9 @@
 from select import select
 from socket import AF_INET, SOCK_STREAM, socket
 from sys import argv, exit, stderr
+from petition import Petition
+from http_methods import handle_get, handle_delete, handle_post
+from signal import signal, SIGINT
 
 
 def setup() -> socket:
@@ -12,6 +15,16 @@ def setup() -> socket:
     # Create a TCP/IP socket
     server = socket(AF_INET, SOCK_STREAM)
     server.setblocking(False)
+
+    def sigint_handler(sig, frame):
+        """
+        Catches a SIGINT and cleans up
+        """
+        print("[i] Caught SIGINT, cleaning up...")
+        server.close()
+        exit(0)
+
+    signal(SIGINT, sigint_handler)
 
     # Parse arguments
     if len(argv) != 2:
@@ -72,7 +85,8 @@ def handle_msg(s: socket, inputs: list[socket], server: socket):
     Handles a msg from an incomming connection, parses the request into a class
     and then forwards the request into the corresponding handler
     """
-    buff = ""
+    buff = bytes()
+    s.setblocking(True)
 
     while True:
         data = s.recv(1024)
@@ -83,23 +97,25 @@ def handle_msg(s: socket, inputs: list[socket], server: socket):
         buff += data
         slice_obj = slice(-1, -5, -1)
 
-        if buff[slice_obj] == "\n\r\n\r"
+        last_chars = buff[slice_obj]
+
+        if last_chars.decode() == "\n\r\n\r":
             break
 
-    petition = Petition(data)
+    petition = Petition(data.decode())
 
-    if petition.data:
+    if len(petition.method) != 0:
         if petition.method == 'GET':
-            handle_get(petition)
+            handle_get(s, petition)
 
         elif petition.method == 'POST':
-            handle_post(petition)
+            handle_post(s, petition)
 
         elif petition.method == 'DELETE':
-            handle_delete(petition)
+            handle_delete(s, petition)
 
     if not petition.keep_alive:
-        # Interpret empty result as closed connection
+        addr, port = s.getpeername()
         print(f'  closing {addr}:{port}', file=stderr)
         # Stop listening for input on the connection
         inputs.remove(s)
@@ -108,4 +124,3 @@ def handle_msg(s: socket, inputs: list[socket], server: socket):
 
 if __name__ == "__main__":
     main()
-
