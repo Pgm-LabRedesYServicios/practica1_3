@@ -10,6 +10,9 @@ router: Dict[str, Callable[[socket, Petition], None]] = {}
 
 
 def handle_log_query(s: socket, p: Petition):
+    """
+    Simply logs the request and returns OK
+    """
     data = "OK".encode()
 
     print(f"[i] Got {p.header_map}")
@@ -19,13 +22,19 @@ def handle_log_query(s: socket, p: Petition):
 
 
 def handle_time_query(s: socket, p: Petition):
+    """
+    Returns the current date and time in the utc timezone
+    """
     data = str(datetime.utcnow()).encode()
 
     resp = craft_response("200 OK", "text/plain", data)
     s.sendall(resp)
-    
+
 
 def register_functions():
+    """
+    Registers the log and time endpoints
+    """
     router["/api/time"] = handle_time_query
     router["/api/log"] = handle_log_query
 
