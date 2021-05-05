@@ -34,6 +34,8 @@ def handle_get(s: socket, petition: Petition):
 
     mime, _ = mimetypes.guess_type(path)
 
+    print(f"[i] GET for \"{path}\" with {petition.header_map}")
+
     try:
         with open("./" + path) as file:
             data = file.read()
@@ -56,3 +58,5 @@ def craft_response(status, mime, data):
     response = header_status + header_date + header_server + header_mime + header_length + header_connection
 
     return response.encode()
+
+

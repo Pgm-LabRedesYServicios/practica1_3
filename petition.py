@@ -24,7 +24,7 @@ class Petition:
             key = kv.pop(0)
             key = list(key)
             key.pop(-1)
-            key = str(key)
+            key = "".join(key)
 
             header_map[key] = kv
 

@@ -86,9 +86,12 @@ def handle_msg(s: socket, inputs: list[socket], server: socket):
     and then forwards the request into the corresponding handler
     """
     buff = bytes()
-    s.setblocking(True)
+    # Put the socket in a list to pass it to select with timeout
+    s_list = [s]
 
     while True:
+        readable, writable, exceptional = select(s_list, [], [], 10)
+
         data = s.recv(1024)
 
         if len(data) == 0:
