@@ -4,7 +4,7 @@ from select import select
 from socket import AF_INET, SOCK_STREAM, socket
 from sys import argv, exit, stderr
 from petition import Petition
-from http_methods import handle_get, handle_delete, handle_post
+from http_methods import handle_get, handle_delete, handle_post, register_functions
 from signal import signal, SIGINT
 
 
@@ -44,6 +44,8 @@ def setup() -> socket:
 
     # Listen for incoming connections
     server.listen(5)
+
+    register_functions()
 
     return server
 
@@ -93,6 +95,9 @@ def handle_msg(s: socket, inputs: list[socket], server: socket):
 
     while True:
         readable, writable, exceptional = select(s_list, [], [], 10)
+        if len(readable) == 0:
+            print("[x] Invalid petition")
+            return
 
         data = s.recv(1024)
 

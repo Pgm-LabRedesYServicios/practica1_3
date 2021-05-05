@@ -2,10 +2,32 @@ from petition import Petition
 from datetime import date
 from socket import socket
 from typing import Dict, Callable
+from datetime import datetime
 import mimetypes
 
 
 router: Dict[str, Callable[[socket, Petition], None]] = {}
+
+
+def handle_log_query(s: socket, p: Petition):
+    data = "OK".encode()
+
+    print(f"[i] Got {p.header_map}")
+
+    resp = craft_response("200 OK", "text/plain", data)
+    s.sendall(resp)
+
+
+def handle_time_query(s: socket, p: Petition):
+    data = str(datetime.utcnow()).encode()
+
+    resp = craft_response("200 OK", "text/plain", data)
+    s.sendall(resp)
+    
+
+def register_functions():
+    router["/api/time"] = handle_time_query
+    router["/api/log"] = handle_log_query
 
 
 def handle_post(s: socket, petition: Petition):
@@ -46,10 +68,12 @@ def handle_get(s: socket, petition: Petition):
     except FileNotFoundError:
         resp = craft_response("404 NOT FOUND", mime, ''.encode())
 
+    s.setblocking(True)
     s.sendall(resp)
+    s.setblocking(False)
 
 
-def craft_response(status: str, mime: str, data: bytes):
+def craft_response(status: str, mime: str, data: bytes) -> bytes:
     header_status = f"HTTP/1.1 {status}\r\n"
     header_date = f"Date: {str(date.today())}\r\n"
     header_server = "Server: Anarres\r\n"
