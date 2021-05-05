@@ -34,29 +34,31 @@ def handle_get(s: socket, petition: Petition):
 
     mime, _ = mimetypes.guess_type(path)
 
+    if mime is None:
+        mime = "text/plain"
+
     print(f"[i] GET for \"{path}\" with {petition.header_map}")
 
     try:
-        with open("./" + path) as file:
+        with open("./" + path, "rb") as file:
             data = file.read()
             resp = craft_response("200 OK", mime, data)
-            print(resp.decode())
     except FileNotFoundError:
-        resp = craft_response("404 NOT FOUND", mime, '')
+        resp = craft_response("404 NOT FOUND", mime, ''.encode())
 
     s.sendall(resp)
 
 
-def craft_response(status, mime, data):
+def craft_response(status: str, mime: str, data: bytes):
     header_status = f"HTTP/1.1 {status}\r\n"
     header_date = f"Date: {str(date.today())}\r\n"
     header_server = "Server: Anarres\r\n"
     header_mime = f"Content-type: {mime}\r\n"
     header_length = f"Content-length: {len(data)}\r\n"
-    header_connection = f"Connection: {'close'}\r\n\r\n{data}"
+    header_connection = f"Connection: {'close'}\r\n\r\n"
 
     response = header_status + header_date + header_server + header_mime + header_length + header_connection
 
-    return response.encode()
+    rsp = response.encode() + data
 
-
+    return rsp

@@ -57,7 +57,9 @@ def main():
     # This loop blocks until there is data ready
     while inputs:
         # Wait for at least one of the sockets to be ready for processing
-        readable, writable, exceptional = select(inputs, [], [])
+        readable, writable, exceptional = select(inputs, [], [], 10)
+        if len(readable) == 0:
+            print("[i] Servidor inactivo")
 
         # Handle inputs
         for s in readable:
